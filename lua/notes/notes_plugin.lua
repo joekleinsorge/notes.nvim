@@ -50,7 +50,7 @@ function M.search_note_by_name()
       end,
     },
     sorter = require('telescope.sorters').get_generic_fuzzy_sorter(),
-    attach_mappings = function(prompt_bufnr)
+    attach_mappings = function(_, prompt_bufnr)
       actions.select_default:replace(function()
         local selection = actions.get_selected_entry(prompt_bufnr)
         if selection and selection.filename then
@@ -92,3 +92,4 @@ wk.register({
 }, { prefix = "<leader>" })
 
 return M
+
