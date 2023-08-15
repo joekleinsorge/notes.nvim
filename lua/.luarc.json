@@ -1,0 +1,15 @@
+{
+    "workspace.library": [
+        "/opt/homebrew/Cellar/neovim/0.9.1/share/nvim/runtime",
+        "/Users/joe/.local/share/lunarvim/lvim",
+        "/Users/joe/.local/share/lunarvim/site/pack/lazy/opt/neodev.nvim/types/stable",
+        "${3rd}/busted/library",
+        "${3rd}/luassert/library",
+        "${3rd}/luv/library",
+        "/Users/joe/.local/share/lunarvim/site/pack/lazy/opt/LuaSnip/lua",
+        "/Users/joe/.local/share/lunarvim/site/pack/lazy/opt/telescope.nvim/lua",
+        "/Users/joe/.local/share/lunarvim/site/pack/lazy/opt/plenary.nvim/lua",
+        "/Users/joe/.local/share/lvim/mason/packages/lua-language-server/libexec/meta/1cbe0682",
+        "/Users/joe/.local/share/lvim/mason/packages/lua-language-server/libexec/meta/673c34ed"
+    ]
+}
