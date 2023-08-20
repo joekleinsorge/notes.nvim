@@ -77,8 +77,16 @@ function M.setup(config)
     M.notes_directory = config.notes_directory or M.notes_directory
     M.default_file_extension = config.default_file_extension or M.default_file_extension
   end
+
+  -- Set up which-key mappings
+  require("which-key").register({
+    ["<Leader>n"] = {
+      name = "Notes Plugin",
+      o = { "<cmd>lua require'notes.notes_plugin'.search_existing_notes(vim.fn.input('Enter note name: '))<CR>",
+        "Open Note with Trouble" },
+    },
+  }, { prefix = "<Leader>" })
 end
 
 -- Return the module for use
 return M
-
