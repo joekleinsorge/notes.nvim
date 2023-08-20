@@ -9,9 +9,18 @@ local trouble = require("trouble.providers.telescope")
 -- Create a module to hold all the functions and configurations
 local M = {}
 
--- Configuration
-M.notes_directory = "~/git/notes/vault"
-M.leader_key = "<leader>"
+-- Configuration (allow customization through Neovim's configuration)
+M.notes_directory = vim.g.notes_directory or "~/git/notes/vault"
+M.leader_key = vim.g.notes_leader_key or "<leader>"
+M.default_file_extension = ".md" -- Default file extension for notes
+M.default_metadata = {
+  -- Default metadata fields
+  id = true,
+  created = true,
+  updated = true,
+  title = true,
+  tags = true,
+}
 
 -- Utility function to change directory and run a function, then restore directory
 local function run_in_directory(directory, func)
@@ -28,80 +37,73 @@ function M.create_new_note()
     note_name = os.date("daily.%d-%m-%y")
   end
 
-  local note_path = M.notes_directory .. "/" .. note_name .. ".md"
-  vim.cmd("silent! e " .. note_path)   -- Use "silent!" to suppress error messages
+  local note_path = M.notes_directory .. "/" .. note_name .. M.default_file_extension
+  local metadata = "---\n"
+  for field, _ in pairs(M.default_metadata) do
+    if field == "id" then
+      metadata = metadata .. field .. ": " .. vim.fn.strftime('%s') .. "\n"
+    elseif field == "created" or field == "updated" then
+      metadata = metadata .. field .. ": " .. os.date('%Y-%m-%d %H:%M:%S') .. "\n"
+    else
+      metadata = metadata .. field .. ": " .. note_name .. "\n"
+    end
+  end
+  metadata = metadata .. "---\n"
+
+  vim.fn.writefile({ metadata }, note_path, 'w')
+  vim.cmd("silent! e " .. note_path)
   vim.api.nvim_out_write("Created new note: " .. note_name .. "\n")
 end
 
 -- Function to save and open a note
 function M.save_and_open_note(note_name)
-  local note_path = M.notes_directory .. "/" .. note_name .. ".md"
+  local note_path = M.notes_directory .. "/" .. note_name .. M.default_file_extension
 
   run_in_directory(M.notes_directory, function()
-    vim.cmd("silent! e " .. note_path)     -- Use "silent!" to suppress error messages
-    vim.api.nvim_out_write("Opened note: " .. note_name .. "\n")
+    if vim.fn.filereadable(note_path) == 1 then
+      vim.cmd("silent! e " .. note_path)
+      vim.api.nvim_out_write("Opened note: " .. note_name .. "\n")
+    else
+      vim.api.nvim_out_write("Note not found: " .. note_name .. "\n")
+    end
   end)
 end
 
--- Function to search notes by name
+-- Function to search notes by name using Telescope
 function M.search_note_by_name()
-  local note_files = vim.fn.globpath(M.notes_directory, "*.md", false, true)
-
-  pickers.new({}, {
+  require('telescope.builtin').find_files({
     prompt_title = 'Search Notes by Name',
-    finder = finders.new_table {
-      results = note_files,
-      entry_maker = function(entry)
-        return {
-          display = entry,
-          filename = entry,
-        }
-      end,
-    },
-    sorter = require('telescope.sorters').get_generic_fuzzy_sorter(),
-    attach_mappings = function(_, prompt_bufnr)
-      actions.select_default:replace(function()
-        local selection = actions.get_selected_entry(prompt_bufnr)
-        if selection and selection.filename then
-          run_in_directory(M.notes_directory, function()
-            vim.cmd("silent! e " .. selection.filename)             -- Use "silent!" to suppress error messages
-            vim.api.nvim_out_write("Opened note: " .. selection.filename .. "\n")
-          end)
-          actions.close(prompt_bufnr)
-        end
-      end)
-      return true
-    end,
-  }):find()
+    cwd = M.notes_directory,
+  })
 end
 
--- Function to search text in notes
+-- Function to search text in notes using Telescope
 function M.search_text_in_note()
   local search_term = vim.fn.input("Search for: ")
   if search_term ~= "" then
-    require('telescope.builtin').grep_string({
+    require('telescope.builtin').live_grep({
       prompt_title = 'Search Text in Notes',
+      cwd = M.notes_directory,
       search = search_term,
-      search_dirs = { M.notes_directory },
     })
   else
     print("Search term cannot be empty.")
   end
 end
 
--- Function to open notes using trouble.nvim
+-- Function to open notes using Trouble
 function M.open_note_with_trouble()
   require("telescope.builtin").grep_string({
     prompt_title = 'Open Note with Trouble',
-    search = "",     -- Empty search to show all notes
+    search = "", -- Empty search to show all notes
     search_dirs = { M.notes_directory },
     attach_mappings = function(_, prompt_bufnr)
       actions.select_default:replace(function()
         local selection = actions.get_selected_entry(prompt_bufnr)
-        if selection and selection.filename then
+        if selection and selection.value then
           run_in_directory(M.notes_directory, function()
-            vim.fn["trouble.open"](selection.filename)
-            vim.api.nvim_out_write("Opened note with trouble: " .. selection.filename .. "\n")
+            vim.fn["trouble.open"](selection.value)
+            vim.api.nvim_out_write("Opened note with trouble: " .. selection.value .. "\n")
           end)
           actions.close(prompt_bufnr)
         end
@@ -126,4 +128,21 @@ wk.register({
   },
 }, { prefix = M.leader_key })
 
+-- Provide user feedback
+local function notify(message)
+  vim.api.nvim_echo({ { "Notes Plugin: " .. message, "Type" } }, true, {})
+end
+
+-- Initialize the plugin
+function M.setup(config)
+  if config then
+    M.notes_directory = config.notes_directory or M.notes_directory
+    M.leader_key = config.leader_key or M.leader_key
+    M.default_metadata = config.default_metadata or M.default_metadata
+    M.default_file_extension = config.default_file_extension or M.default_file_extension
+  end
+  notify("Initialized")
+end
+
+-- Return the module for use
 return M
