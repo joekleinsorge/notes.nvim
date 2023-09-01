@@ -6,7 +6,8 @@ M.new_note = function()
     name = os.date("daily.%Y-%m-%d.md")
   end
 
-  local notes_path = "~/git/notes/vault"
+  local home = os.getenv("HOME")
+  local notes_path = home .. "/git/notes/vault"
   local full_path = notes_path .. "/" .. name
 
   local template = [[
