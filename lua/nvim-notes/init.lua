@@ -10,18 +10,13 @@ M.new_note = function()
   local notes_path = home .. "/git/notes/vault"
   local full_path = notes_path .. "/" .. name
 
-  local template = [[
+  local template = string.format([[
 ---
-id: "tools.notes"
+id: "%s"
 aliases:
-  - "Notes"
-tags: [neovim, notes]
+tags: []
 ---
-
-# New Note
-
--- Insert your content here --
-]]
+]], name)
 
   -- Create the notes directory if it doesn't exist
   vim.fn.mkdir(notes_path, "p")
@@ -38,7 +33,8 @@ end
 
 M.find_note = function()
   local telescope = require("telescope.builtin")
-  local notes_path = "~/git/notes/vault"
+  local home = os.getenv("HOME")
+  local notes_path = home .. "/git/notes/vault"
 
   telescope.find_files({
     prompt_title = "Find Note",
@@ -46,10 +42,10 @@ M.find_note = function()
   })
 end
 
-
 M.search_notes = function()
   local telescope = require("telescope.builtin")
-  local notes_path = "~/git/notes/vault"
+  local home = os.getenv("HOME")
+  local notes_path = home .. "/git/notes/vault"
 
   telescope.live_grep({
     prompt_title = "Search Notes",
