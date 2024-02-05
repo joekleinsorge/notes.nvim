@@ -27,6 +27,7 @@ M.new_note = function(config)
 
   local notes_path = get_notes_path(config)
   local full_path = notes_path .. "/" .. name
+  local timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
 
   -- Check if the file already exists
   if vim.fn.filereadable(full_path) == 1 then
@@ -38,9 +39,10 @@ M.new_note = function(config)
 ---
 id: "%s"
 aliases:
+created: "%s"
 tags: []
 ---
-]], name)
+]], name, timestamp)
 
   -- Create the notes directory if it doesn't exist
   vim.fn.mkdir(notes_path, "p")

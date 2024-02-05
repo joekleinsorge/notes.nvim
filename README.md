@@ -1,3 +1,5 @@
+thisn is cool
+
 # nvim-notes
 
 Minimal and opinionated note taking and searching plugin for Neovim inspired by Dendron.
