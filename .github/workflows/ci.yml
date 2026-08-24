@@ -30,4 +30,5 @@ jobs:
       - uses: JohnnyMorganz/stylua-action@v4
         with:
           version: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
           args: --check lua plugin tests
