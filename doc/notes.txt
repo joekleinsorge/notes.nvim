@@ -1,0 +1,130 @@
+*notes.nvim.txt*                    Minimal, opinionated note taking for Neovim
+
+===============================================================================
+CONTENTS                                                     *notes-contents*
+
+1. Introduction ....................................... |notes-introduction|
+2. Requirements ....................................... |notes-requirements|
+3. Setup ..................................................... |notes-setup|
+4. Commands ................................................. |notes-commands|
+5. Lua API ................................................... |notes-lua-api|
+6. Safety ..................................................... |notes-safety|
+7. Health checks ............................................. |notes-health|
+
+===============================================================================
+1. INTRODUCTION                                           *notes-introduction*
+
+notes.nvim creates and searches notes inside a configured vault. It supports
+nested note names, customizable YAML front matter, Telescope-based file and
+content search, and reopening the most recently modified note.
+
+===============================================================================
+2. REQUIREMENTS                                             *notes-requirements*
+
+- Neovim 0.9 or newer.
+- telescope.nvim for finding and searching notes.
+- ripgrep (`rg`) for content search with |:NotesSearch|.
+
+===============================================================================
+3. SETUP                                                           *notes-setup*
+
+Call setup from your Neovim configuration: >lua
+
+    require("notes").setup({
+      notes_path = vim.fn.expand("~/notes"),
+    })
+<
+The available options are:
+
+notes_path ~
+    String path to the note vault. Defaults to ~/git/notes/vault.
+
+frontmatter ~
+    Function or list of lines used for new notes. A function receives a table
+    containing name, path, id, created, metadata, and config.
+
+notify ~
+    Function called with a message and log level. Defaults to |vim.notify()|.
+
+note_extensions ~
+    List of extensions considered by |notes.last_note()|. Defaults to `md` and
+    `markdown`. An empty list allows every regular file.
+
+ignore_hidden ~
+    Boolean controlling whether hidden paths are excluded. Defaults to true.
+
+telescope ~
+    Table containing `find_files` and `live_grep` option tables. Each is merged
+    into the options passed to Telescope.
+
+Unknown options and invalid option types produce a descriptive setup error.
+
+===============================================================================
+4. COMMANDS                                                     *notes-commands*
+
+                                                               *:NotesNew*
+:NotesNew [name]
+    Create or open a note. With no name, prompt for one. Submitting an empty
+    prompt creates today's `daily.YYYY-MM-DD.md`; cancelling does nothing.
+
+                                                               *:NotesFind*
+:NotesFind
+    Open Telescope file search scoped to the note vault.
+
+                                                             *:NotesSearch*
+:NotesSearch
+    Open Telescope live grep scoped to the note vault.
+
+                                                               *:NotesLast*
+:NotesLast
+    Open the most recently modified file matching `note_extensions`.
+
+===============================================================================
+5. LUA API                                                       *notes-lua-api*
+
+setup({config})                                              *notes.setup()*
+    Replace the plugin configuration and return a defensive copy.
+
+get_config()                                             *notes.get_config()*
+    Return a defensive copy of the active configuration.
+
+notes_path({opts})                                       *notes.notes_path()*
+    Return the resolved absolute vault path.
+
+new_note({opts})                                           *notes.new_note()*
+    Create or open a note. `opts.name` supplies the relative filename and
+    `opts.metadata` is passed to the front matter function. Other fields are
+    treated as per-call configuration overrides.
+
+find_note({opts})                                         *notes.find_note()*
+    Open Telescope file search for the configured vault.
+
+search_notes({opts})                                   *notes.search_notes()*
+    Open Telescope live grep for the configured vault.
+
+last_note({opts})                                         *notes.last_note()*
+    Open the most recently modified eligible note.
+
+complete_note_name(arglead, {opts})                *notes.complete_note_name()*
+    Return vault-relative completion candidates for a partial note name.
+
+===============================================================================
+6. SAFETY                                                         *notes-safety*
+
+Note names must remain relative to `notes_path`. Absolute paths, control
+characters, `.` and `..` path segments, and paths through symbolic links are
+rejected before a file or directory is created. Symbolic links are excluded
+from completion and recent-note scanning.
+
+===============================================================================
+7. HEALTH CHECKS                                                   *notes-health*
+
+Run: >vim
+
+    :checkhealth notes
+<
+The check reports the Neovim version, resolved vault state, Telescope
+availability, and ripgrep availability.
+
+===============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:
